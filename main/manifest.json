@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "PDF Link Fetcher",
+  "version": "1.0",
+  "description": "Fetches all PDF links from the current tab and exports them to a CSV file.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

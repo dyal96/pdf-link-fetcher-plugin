@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>PDF Fetcher</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>PDF Link Fetcher</h1>
+    <div id="result-count" style="font-weight: bold; margin-bottom: 10px;">Total Links: 0</div>
+
+    <div class="toggle-container">
+      <label class="switch">
+        <input type="checkbox" id="autoFetchToggle">
+        <span class="slider round"></span>
+      </label>
+      <span>Auto-Fetch</span>
+    </div>
+
+    <div class="button-group">
+      <button id="fetchBtn">Fetch from Tab</button>
+      <button id="downloadBtn" disabled>Download CSV</button>
+      <button id="resetBtn" class="secondary">Reset All</button>
+    </div>
+    <div id="status"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>
