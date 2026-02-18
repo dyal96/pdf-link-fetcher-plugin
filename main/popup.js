@@ -92,13 +92,35 @@ async function getLinksFromStorage() {
     });
 }
 
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+    const links = await getLinksFromStorage();
+    if (links.length > 0) {
+        const urlList = links.map(link => link.url).join('\n');
+        try {
+            await navigator.clipboard.writeText(urlList);
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = `Copied ${links.length} URLs to clipboard!`;
+            setTimeout(() => {
+                if (statusDiv.textContent.startsWith('Copied')) {
+                     statusDiv.textContent = '';
+                }
+            }, 3000);
+        } catch (err) {
+            document.getElementById('status').textContent = 'Failed to copy: ' + err;
+        }
+    }
+});
+
 async function updateUI() {
     const links = await getLinksFromStorage();
     const countDiv = document.getElementById('result-count');
     const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
 
     countDiv.textContent = `Total Links: ${links.length}`;
     downloadBtn.disabled = links.length === 0;
+    copyBtn.disabled = links.length === 0;
 }
 
 function downloadCSV(links) {
