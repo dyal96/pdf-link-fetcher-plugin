@@ -27,6 +27,23 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
 });
 
+// Handle download requests from popup (popup context has restrictions with chrome.downloads)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'download_file') {
+        chrome.downloads.download({
+            url: message.url,
+            conflictAction: 'uniquify'
+        }, (downloadId) => {
+            if (chrome.runtime.lastError) {
+                sendResponse({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+                sendResponse({ success: true, downloadId });
+            }
+        });
+        return true; // Keep message channel open for async response
+    }
+});
+
 function displayCount(n) {
     if (n > 99) return "99+";
     return n.toString();

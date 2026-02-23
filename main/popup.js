@@ -54,6 +54,13 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
     }
 });
 
+document.getElementById('downloadAllBtn').addEventListener('click', async () => {
+    const links = await getLinksFromStorage();
+    if (links.length > 0) {
+        downloadAllPDFs(links);
+    }
+});
+
 document.getElementById('resetBtn').addEventListener('click', async () => {
     await chrome.storage.local.set({ pdfLinks: [] });
     updateUI();
@@ -103,7 +110,7 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
             statusDiv.textContent = `Copied ${links.length} URLs to clipboard!`;
             setTimeout(() => {
                 if (statusDiv.textContent.startsWith('Copied')) {
-                     statusDiv.textContent = '';
+                    statusDiv.textContent = '';
                 }
             }, 3000);
         } catch (err) {
@@ -116,10 +123,12 @@ async function updateUI() {
     const links = await getLinksFromStorage();
     const countDiv = document.getElementById('result-count');
     const downloadBtn = document.getElementById('downloadBtn');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
     const copyBtn = document.getElementById('copyBtn');
 
     countDiv.textContent = `Total Links: ${links.length}`;
     downloadBtn.disabled = links.length === 0;
+    downloadAllBtn.disabled = links.length === 0;
     copyBtn.disabled = links.length === 0;
 }
 
@@ -147,5 +156,44 @@ function downloadCSV(links) {
         statusDiv.textContent = `Successfully export to CSV.`;
     } catch (err) {
         statusDiv.textContent = 'Error creating CSV: ' + err.message;
+    }
+}
+
+async function downloadAllPDFs(links) {
+    const statusDiv = document.getElementById('status');
+    let successCount = 0;
+    let failCount = 0;
+    const errors = [];
+
+    statusDiv.textContent = `Starting downloads... (0/${links.length})`;
+
+    for (const link of links) {
+        try {
+            // Delegate to background service worker to avoid popup context restrictions
+            const result = await chrome.runtime.sendMessage({
+                action: 'download_file',
+                url: link.url
+            });
+
+            if (result && result.success) {
+                successCount++;
+            } else {
+                failCount++;
+                errors.push(result?.error || 'Unknown error');
+                console.error(`Failed to download ${link.url}:`, result?.error);
+            }
+        } catch (err) {
+            failCount++;
+            errors.push(err.message);
+            console.error(`Failed to download ${link.url}:`, err);
+        }
+        statusDiv.textContent = `Downloading... (${successCount + failCount}/${links.length})`;
+    }
+
+    if (failCount === 0) {
+        statusDiv.textContent = `Successfully started ${successCount} downloads!`;
+    } else {
+        const firstError = errors[0] ? ` Error: ${errors[0]}` : '';
+        statusDiv.textContent = `Started ${successCount} downloads. ${failCount} failed.${firstError}`;
     }
 }
